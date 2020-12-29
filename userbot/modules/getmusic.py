@@ -5,8 +5,8 @@ import asyncio
 import glob
 import os
 import shutil
+import subprocess
 import time
-from asyncio.exceptions import TimeoutError
 
 import deezloader
 from hachoir.metadata import extractMetadata
@@ -28,6 +28,20 @@ from userbot.events import register
 from userbot.utils import chrome, progress
 
 
+async def getmusic(cat):
+    video_link = ""
+    search = cat
+    driver = await chrome()
+    driver.get("https://www.youtube.com/results?search_query=" + search)
+    user_data = driver.find_elements_by_xpath('//*[@id="video-title"]')
+    for i in user_data:
+        video_link = i.get_attribute("href")
+        break
+    command = f"youtube-dl -x --add-metadata --embed-thumbnail --audio-format mp3 {video_link}"
+    os.system(command)
+    return video_link
+
+
 async def getmusicvideo(cat):
     video_link = ""
     search = cat
@@ -39,6 +53,41 @@ async def getmusicvideo(cat):
         break
     command = 'youtube-dl -f "[filesize<50M]" --merge-output-format mp4 ' + video_link
     os.system(command)
+
+
+@register(outgoing=True, pattern=r"^\.song (.*)")
+async def _(event):
+    reply_to_id = event.message.id
+    if event.reply_to_msg_id:
+        reply_to_id = event.reply_to_msg_id
+    reply = await event.get_reply_message()
+    if event.pattern_match.group(1):
+        query = event.pattern_match.group(1)
+        await event.edit("`Wait..! I am finding your song..`")
+    elif reply.message:
+        query = reply.message
+        await event.edit("`Wait..! I am finding your song..`")
+    else:
+        await event.edit("`What I am Supposed to find?`")
+        return
+
+    video_link = await getmusic(str(query))
+    loa = glob.glob("*.mp3")[0]
+    await event.edit("`Yeah.. Uploading your song..`")
+    c_time = time.time()
+    await event.client.send_file(
+        event.chat_id,
+        loa,
+        allow_cache=False,
+        caption=f"[{query}]({video_link})",
+        reply_to=reply_to_id,
+        progress_callback=lambda d, t: asyncio.get_event_loop().create_task(
+            progress(d, t, event, c_time, "[UPLOAD]", loa)
+        ),
+    )
+    await event.delete()
+    os.system("rm -rf *.mp3")
+    subprocess.check_output("rm -rf *.mp3", shell=True)
 
 
 @register(outgoing=True, pattern=r"^\.vsong(?: |$)(.*)")

@@ -602,7 +602,7 @@ async def download_video(v_url):
     if song:
         await v_url.edit(
             f"`Preparing to upload song:`\n**{rip_data['title']}**"
-            "\nby *{rip_data['uploader']}*"
+            f"\nby **{rip_data['uploader']}**"
         )
         await v_url.client.send_file(
             v_url.chat_id,
@@ -624,7 +624,7 @@ async def download_video(v_url):
     elif video:
         await v_url.edit(
             f"`Preparing to upload video:`\n**{rip_data['title']}**"
-            "\nby *{rip_data['uploader']}*"
+            f"\nby **{rip_data['uploader']}**"
         )
         await v_url.client.send_file(
             v_url.chat_id,
@@ -662,7 +662,9 @@ CMD_HELP.update(
         "trt": ">`.trt <text> [or reply]`"
         "\nUsage: Translates text to the language which is set."
         "\nUse >`.lang trt <language code>` to set language for trt. (Default is English)",
-        "yt": ">`.yt <text>`" "\nUsage: Does a YouTube search.",
+        "yt": ">`.yt` `<count> <query>`"
+        "\nUsage: Does a YouTube search."
+        "\nCan specify the number of results needed (default is 3).",
         "imdb": ">`.imdb <movie-name>`" "\nUsage: Shows movie info and other stuff.",
         "rip": ">`.ripaudio <url> or ripvideo <url>`"
         "\nUsage: Download videos and songs from YouTube "
